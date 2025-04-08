@@ -1,3 +1,5 @@
 /pkg/
-/*.out/
-/*.exe/
+
+# ignore bins
+*.out/
+*.exe/

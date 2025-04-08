@@ -6,33 +6,55 @@ import (
 	"os/exec"
 	"path/filepath"
 )
-func do(extension string,pathToSource string) {
-	var cmd *exec.Cmd 
-	switch extension { 
-	case ".c":
-		fmt.Println("gcc")
-		cmd = exec.Command("gcc" ,pathToSource,"-o","/tmp/a.out")
-	case ".cpp":
-		fmt.Println("g++")
-	case ".java":
-		fmt.Println("javac and java")
-	case ".py":
-		fmt.Println("Python")
-	case ".go":
-		fmt.Println("Golang")
-	case ".js":
-		fmt.Println("node-js")
+
+// takes doer(compiler/interpreter) and the source/pathToSource for execution and
+// also a bool bin to flag if the doer generates seperate bin that needs manual execution
+func runCmd(doer string,pathToSource string,bin  bool){
+	var cmd,Rcmd *exec.Cmd
+	if bin {
+		cmd  = exec.Command(doer,pathToSource,"-o","/tmp/a.out")
+		Rcmd = exec.Command("/tmp/a.out")
+	}else  {
+		cmd  = exec.Command(doer,pathToSource)
 	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
-		fmt.Println("error during processing " , err )
+		fmt.Println("Error during processing " , err )
 	}
-	run := exec.Command("/tmp/a.out")
-	run.Stdout = os.Stdout
-	run.Stderr = os.Stderr
-	run.Run()
+	if bin && err == nil {
+		Rcmd.Stdout = os.Stdout
+		Rcmd.Stderr = os.Stderr
+		Rerr := Rcmd.Run()
+		if Rerr != nil {
+			fmt.Println("Error during execution " , Rerr )
+		}
+	}
+}
+
+// checks extensions and calls doer function 
+// basically a wrapper function
+func do(extension string,pathToSource string) {
+	switch extension { 
+	case ".c":
+		fmt.Println("gcc")
+		runCmd("gcc",pathToSource,true)	
+	case ".cpp":
+		fmt.Println("g++")
+		runCmd("g++",pathToSource,true)	
+	case ".java":
+		fmt.Println("javac and java")
+		runCmd("javac",pathToSource,false)	
+	case ".py":
+		fmt.Println("Python")
+		runCmd("python",pathToSource,false)	
+	case ".go":
+		fmt.Println("Golang")
+		runCmd("go run",pathToSource,false)	
+	default :
+		fmt.Println("unsuported extension/language")
+	}
 }
 
 func main()  {
