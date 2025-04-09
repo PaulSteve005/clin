@@ -3,3 +3,4 @@
 # ignore bins
 *.out/
 *.exe/
+/test/

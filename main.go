@@ -6,26 +6,30 @@ import (
 	"os/exec"
 	"path/filepath"
 )
+var tmpDir string = os.TempDir()
 
 // takes doer(compiler/interpreter) and the source/pathToSource for execution and
 // also a bool bin to flag if the doer generates seperate bin that needs manual execution
-func runCmd(doer string,pathToSource string,bin  bool){
+func runCmd(doer string,pathToSource string,isCompilable  bool,binName string){
 	var cmd,Rcmd *exec.Cmd
-	if bin {
-		cmd  = exec.Command(doer,pathToSource,"-o","/tmp/a.out")
-		Rcmd = exec.Command("/tmp/a.out")
+	var binPath = filepath.Join(tmpDir,binName)
+	if isCompilable {
+		cmd  = exec.Command(doer,pathToSource,"-o",binPath)
+		Rcmd = exec.Command(binPath)
 	}else  {
 		cmd  = exec.Command(doer,pathToSource)
 	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
 	err := cmd.Run()
 	if err != nil {
 		fmt.Println("Error during processing " , err )
 	}
-	if bin && err == nil {
+	if isCompilable && err == nil {
 		Rcmd.Stdout = os.Stdout
 		Rcmd.Stderr = os.Stderr
+		Rcmd.Stdin = os.Stdin
 		Rerr := Rcmd.Run()
 		if Rerr != nil {
 			fmt.Println("Error during execution " , Rerr )
@@ -39,19 +43,19 @@ func do(extension string,pathToSource string) {
 	switch extension { 
 	case ".c":
 		fmt.Println("gcc")
-		runCmd("gcc",pathToSource,true)	
+		runCmd("gcc",pathToSource,true,"a.out")	
 	case ".cpp":
 		fmt.Println("g++")
-		runCmd("g++",pathToSource,true)	
+		runCmd("g++",pathToSource,true,"a.out")	
 	case ".java":
 		fmt.Println("javac and java")
-		runCmd("javac",pathToSource,false)	
+		runCmd("javac",pathToSource,false,"a.out")	
 	case ".py":
 		fmt.Println("Python")
-		runCmd("python",pathToSource,false)	
+		runCmd("python",pathToSource,false,"a.out")	
 	case ".go":
 		fmt.Println("Golang")
-		runCmd("go run",pathToSource,false)	
+		runCmd("go run",pathToSource,false,"a.out")	
 	default :
 		fmt.Println("unsuported extension/language")
 	}
