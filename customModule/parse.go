@@ -8,7 +8,7 @@ import (
 )
 func isSupported(extension string)bool {
 	switch extension {
-	case ".c", ".cpp", ".py", ".go", ".zig",".rs",".java",".swift":
+	case ".c", ".cpp", ".py", ".go", ".zig",".rs",".java",".swift",".f90",".f95",".f",".f03",".f08",".for",".hs":
 		return true
 	default:
 		return false
@@ -27,7 +27,7 @@ var (
 	BuildFlags = ""
 )
 
-const version = "alpha0.3.1"
+const version = "beta-0.5.2"
 const helpText = `
 Usage: clin [options] [build flags / options] <source-file>
 

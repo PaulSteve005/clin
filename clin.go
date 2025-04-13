@@ -25,7 +25,7 @@ func runCmd(doer string, pathToSource string, isCompilable bool, binName string,
 	}
 
 	// binary path //
-	if binName == "" {    // i.e. no bin requiered
+	if binName == " " {    // i.e. no bin requiered
 		binPath = binName
 	} else if customModule.BinPath == "" && binName != "" {
 		binPath = filepath.Join(tmpDir, binName)  // default bin
@@ -47,6 +47,7 @@ func runCmd(doer string, pathToSource string, isCompilable bool, binName string,
 	if isCompilable && binoption != " " {  // ignores stuff  if binoptions is set to " " none
 		if isWierd {
 			args = append(args, binoption+binPath)
+			fmt.Println("sanity check if its working ",args,binoption+binPath)
 		} else {
 			args = append(args,binoption, binPath)
 		}

@@ -4,36 +4,34 @@
 
 ## 🧪 Project Plan: Minimal CLI Build Runner
 
-### 🗭 Goal:
-Create a lightweight CLI tool in **Go** that compiles and runs source code in different languages, cross-platform.
+### 🗭 Goal  before stable release:
 
 ---
 
-### ✅ Phase 1: **Basic Prototype (Go version)**  
-- [ ] Write the CLI using Go  
-- [ ] Accept a file path as an argument  
-- [ ] Detect file extension (`.c`, `.cpp`, `.py`, etc.)  
-- [ ] If `.c`, compile it with `gcc`, run the binary  
-- [ ] Option to build binary in `./` or `/tmp`  
-- [ ] Clean error handling + messages
+support languages with 2 or more doer commands "go build" and "zig build-exe" 
 
----
+fix the isWierd flag not working 
 
-### 🛠️ Phase 2: **Add Support for Other Languages**
-- [ ] Python: run with `python3 filename.py`
-- [ ] C++: compile with `g++`
-- [ ] Java: compile + run `.java` files
-- [ ] Rust (optional): use `rustc`
-- [ ] Add fallback/default: show “unsupported language”
+add support for the other languages
+fortran  
 
----
+ruby            .rb
+perl            .pl
+shell script    .sh         sh or bash or zsh -- probably want it to select zsh on osx and
+php             .php        php
+lua             .lua        lua 
+javascript      .js         node
+r               .r          rscript or R
 
-### 🌐 Phase 3: **Cross-Platform Support**
-- [ ] Make it work on Linux, Windows, macOS  
-- [ ] Handle path differences (`\\` vs `/`)  
-- [ ] Detect default compilers for each OS  
-- [ ] Compile using Go’s cross-compilation:
-  ```bash
-  GOOS=windows GOARCH=amd64 go build -o bin.exe
 
+--  not confirm  --
+typescript      .ts         ts-node(interpreter) tsc(compiler)
+
+#### probably after stable release but lets lay them out
+
+--verbose support
+one click install solutions for linux Osx and windows     -- wooofffff    /usr/local/bin
+man page and << autocompletions!!!?!? >>
+logging
+support for a config/clinrc file  primarily to change default compiler/interpreter of supported languages --lets gooooooo!!!!!!!
 
