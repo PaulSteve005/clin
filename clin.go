@@ -14,7 +14,7 @@ var isWierd bool = false // specially for zig
 
 // takes doer(compiler/interpreter) and the source/pathToSource for execution and
 // also a bool bin to flag if the doer generates seperate bin that needs manual execution + binoption biname runner and support for -ot flag
-func runCmd(doer string, pathToSource string, isCompilable bool, binName string, binoption string, runner string) {
+func runCmd(doer string,doer2 string, pathToSource string, isCompilable bool, binName string, binoption string, runner string) {
 	var cmd, Rcmd *exec.Cmd
 	var binPath = ""
 	var args []string
@@ -39,22 +39,33 @@ func runCmd(doer string, pathToSource string, isCompilable bool, binName string,
 	fmt.Println("PATH:", os.Getenv("PATH"))
 	fmt.Println(exec.LookPath(doer))
 
+
+
+	// support for 2 doers //
+	if doer2 != " "{
+		args = append(args,doer2)
+	}
+	
+	// build flags //
 	if customModule.BuildFlags != "" {
 		args = append(args, customModule.BuildFlags)  // append build flags only if there exists  build flags
 	}
-	args = append(args, pathToSource) // source is necessary !!
 
+	// binoptions  defaults to /tmp //
 	if isCompilable && binoption != " " {  // ignores stuff  if binoptions is set to " " none
 		if isWierd {
 			args = append(args, binoption+binPath)
-			fmt.Println("sanity check if its working ",args,binoption+binPath)
+			fmt.Println(args,binoption+binPath)
 		} else {
 			args = append(args,binoption, binPath)
 		}
 	}
 
+	args = append(args, pathToSource) // source is necessary !!
+
 	// Compiler / Interpreter //
-	cmd = exec.Command(doer, args...)
+
+	cmd = exec.Command(doer,args...)
 	fmt.Println("compilation command ",doer,args)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -109,27 +120,32 @@ func do() {
 	switch extension { 
 	case ".c":
 		fmt.Println("gcc")
-		runCmd("gcc", customModule.PathToSource, true, Defaultbin,"", "")	
+		runCmd("gcc"," ", customModule.PathToSource, true, Defaultbin,"", "")	
 	case ".cpp":
 		fmt.Println("g++")
-		runCmd("g++", customModule.PathToSource, true,Defaultbin, "", "")	
+		runCmd("g++"," ", customModule.PathToSource, true,Defaultbin, "", "")	
 	case ".go":
 		fmt.Println("Golang")
-		runCmd("go build",customModule.PathToSource,true,Defaultbin,"", "")	
+		runCmd("go","build",customModule.PathToSource,true,Defaultbin,"", "")	
 	case ".rs":
 		fmt.Println("rustc")
-		runCmd("rustc", customModule.PathToSource, true,Defaultbin, "", "")
+		runCmd("rustc"," ", customModule.PathToSource, true,Defaultbin, "", "")
 	case ".swift":
 		fmt.Println("swiftc")
-		runCmd("swiftc", customModule.PathToSource, true,Defaultbin, "", "")
+		runCmd("swiftc"," ", customModule.PathToSource, true,Defaultbin, "", "")
 	case ".zig":
-		fmt.Println("Zig")
-		runCmd("zig build-exe",customModule.PathToSource,true,Defaultbin,"-femit-bin=","")
 		isWierd = true
+		fmt.Println("Zig")
+		runCmd("zig","build-exe",customModule.PathToSource,true,Defaultbin,"-femit-bin=","")
 	case ".f90",".f95",".f",".f03",".f08",".for":
-		runCmd("gfortran",customModule.PathToSource,true,Defaultbin, "", "")
+		runCmd("gfortran"," ",customModule.PathToSource,true,Defaultbin, "", "")
 	case ".hs":
-		runCmd("ghc",customModule.PathToSource,true,Defaultbin, "", "")
+		runCmd("ghc"," ",customModule.PathToSource,true,Defaultbin, "", "")
+	case ".ts":
+		fmt.Println("typescript")
+		sourceName := filepath.Base(customModule.PathToSource[:len(customModule.PathToSource)-len(filepath.Ext(customModule.PathToSource))])
+		runCmd("tsc"," ",customModule.PathToSource,true,sourceName+".js", "--outFile", "node")
+
 
 	// mixed  //	
 	case ".java":
@@ -138,13 +154,32 @@ func do() {
 			fmt.Println("java does not support customizable directory")
 			os.Exit(3)
 		}else {
-			runCmd("javac",customModule.PathToSource,true," "," ","java")	
+			runCmd("javac"," ",customModule.PathToSource,true," "," ","java")	
 		}
 
 	// Interpreted //
 	case ".py":
 		fmt.Println("Python")
-		runCmd("python",customModule.PathToSource,false,"", "", "")	
+		runCmd("python"," ",customModule.PathToSource,false,"", "", "")	
+	case ".rb":
+		fmt.Println("ruby")
+		runCmd("ruby"," ",customModule.PathToSource,false,"", "", "")	
+	case ".pl":
+		fmt.Println("Python")
+		runCmd("perl"," ",customModule.PathToSource,false,"", "", "")	
+	case ".js":
+		fmt.Println("Javascript")
+		runCmd("node"," ",customModule.PathToSource,false,"", "", "")
+	case ".php":
+		fmt.Println("php")
+		runCmd("php"," ",customModule.PathToSource,false,"", "", "")
+	case ".lua":
+		fmt.Println("lua")
+		runCmd("lua"," ",customModule.PathToSource,false,"", "", "")
+
+
+
+
 	default :
 		fmt.Println("unsuported extension/language")
 	}

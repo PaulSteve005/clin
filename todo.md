@@ -8,24 +8,20 @@
 
 ---
 
-support languages with 2 or more doer commands "go build" and "zig build-exe" 
+support languages with 2 or more doer commands "go build" and "zig build-exe"   --done !!!!
 
-fix the isWierd flag not working 
+fix the isWierd flag not working   --done !!! set isWierd to true before calling the funxtion Runcmd cuse Runcmd needs isWierd to be set lol
 
 add support for the other languages
-fortran  
+fortran  --done 
 
-ruby            .rb
-perl            .pl
+ruby            .rb  --done
+perl            .pl  --done
 shell script    .sh         sh or bash or zsh -- probably want it to select zsh on osx and
-php             .php        php
-lua             .lua        lua 
-javascript      .js         node
-r               .r          rscript or R
-
-
---  not confirm  --
-typescript      .ts         ts-node(interpreter) tsc(compiler)
+php             .php        php  --done
+lua             .lua        lua   --done
+javascript      .js         node  --done
+typescript      .ts         ts-node(interpreter) tsc(compiler)  --done
 
 #### probably after stable release but lets lay them out
 

@@ -8,7 +8,7 @@ import (
 )
 func isSupported(extension string)bool {
 	switch extension {
-	case ".c", ".cpp", ".py", ".go", ".zig",".rs",".java",".swift",".f90",".f95",".f",".f03",".f08",".for",".hs":
+	case ".c", ".cpp", ".py", ".go", ".zig",".rs",".java",".swift",".f90",".f95",".f",".f03",".f08",".for",".hs",".rb",".pl",".php",".lua",".js",".ts",".r":
 		return true
 	default:
 		return false
