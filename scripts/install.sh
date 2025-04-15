@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # --- Configuration ---
-REPO_OWNER="YOUR_GITHUB_USERNAME"       # Replace with your GitHub username
-REPO_NAME="YOUR_GITHUB_REPO"           # Replace with your GitHub repository name
+REPO_OWNER="PaulSteve005"       # Replace with your GitHub username
+REPO_NAME="clin"           # Replace with your GitHub repository name
 BIN_RELEASE_ASSET_LINUX_X64="clin-linux-x64"     # Replace with your Linux x64 binary asset name
 BIN_RELEASE_ASSET_MACOS_X64="clin-macos-x64"     # Replace with your macOS Intel x64 binary asset name
 BIN_RELEASE_ASSET_MACOS_ARM64="clin-macos-arm64"   # Replace with your macOS ARM64 binary asset name
@@ -10,6 +10,8 @@ MAN_RELEASE_ASSET="clin.1"            # Replace with the name of your man page a
 BIN_TARGET_DIR="/usr/local/bin"
 MAN_TARGET_DIR="/usr/local/share/man/man1"
 VERSION="1.0.0" #  Set your initial version here
+MAN_RELEASE_URL="https://raw.githubusercontent.com/PaulSteve005/clin/refs/heads/main/man/clin.1" # URL for the man page
+
 
 # --- Helper Functions ---
 error_exit() {
@@ -27,11 +29,20 @@ check_sudo() {
 
 download_asset() {
     local asset_name="$1"
-    local download_url="https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/latest/download/${asset_name}"
+    local download_url="https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/stable/${asset_name}"
     echo "Downloading ${asset_name}..."
     curl -L -o "${asset_name}" "${download_url}" || error_exit "Failed to download ${asset_name}."
     echo "Downloaded ${asset_name} successfully."
 }
+
+download_manpage() {
+    local man_url="$1"
+    local man_filename="clin.1" # Hardcoded filename
+    echo "Downloading man page from $man_url..."
+    curl -L -o "$man_filename" "$man_url" || error_exit "Failed to download man page."
+    echo "Downloaded man page successfully."
+}
+
 
 install_bin() {
     echo "Installing binary to ${BIN_TARGET_DIR}/clin..."
@@ -41,9 +52,9 @@ install_bin() {
 }
 
 install_man() {
-    echo "Installing man page to ${MAN_TARGET_DIR}/${MAN_RELEASE_ASSET}..."
+    echo "Installing man page to ${MAN_TARGET_DIR}/clin.1..."
     mkdir -p "${MAN_TARGET_DIR}" || error_exit "Failed to create man page directory."
-    mv "${MAN_RELEASE_ASSET}" "${MAN_TARGET_DIR}/" || error_exit "Failed to move man page."
+    mv "clin.1" "${MAN_TARGET_DIR}/" || error_exit "Failed to move man page."
     echo "Man page installed successfully."
 }
 
@@ -98,8 +109,7 @@ case "$os" in
         ;;
 esac
 
-download_asset "${MAN_RELEASE_ASSET}"
-
+download_manpage "$MAN_RELEASE_URL" # Download the man page
 install_bin
 install_man
 update_man_db
