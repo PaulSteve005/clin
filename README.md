@@ -43,6 +43,16 @@ With `clin`, you can seamlessly compile and run your code without needing to rem
 
 ## Installations
 
+### Linux/macOS
+
+\`\`\`
+curl https://raw.githubusercontent.com/PaulSteve005/clin/refs/heads/main/scripts/install.sh | sudo bash
+\`\`\`
+
+### Windows
+(Add Windows installation instructions here)
+
+
 
 ## help
 
