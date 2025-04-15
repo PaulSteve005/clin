@@ -25,9 +25,10 @@ typescript      .ts         ts-node(interpreter) tsc(compiler)  --done
 
 #### probably after stable release but lets lay them out
 
---verbose support
+--verbose support  --done
 one click install solutions for linux Osx and windows     -- wooofffff    /usr/local/bin
-man page and << autocompletions!!!?!? >>
+man page  --done
+<< autocompletions!!!?!? >>
 logging
 support for a config/clinrc file  primarily to change default compiler/interpreter of supported languages --lets gooooooo!!!!!!!
 

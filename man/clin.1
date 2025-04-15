@@ -1,0 +1,51 @@
+.TH CLIN 1 "April 2025" "clin 1.0" "User Commands"
+.SH NAME
+clin \- simple command-line compiler wrapper
+.SH SYNOPSIS
+.B clin \fIsourcefile\fR [\fIoptions\fR]
+.SH DESCRIPTION
+\fBclin\fR is a command-line tool that simplifies the process of compiling and running code across various programming languages. It intelligently detects the language based on the file extension and acts as a wrapper around the appropriate compiler or interpreter. By default, \fBclin\fR compiles (if necessary) and runs the resulting binary located in a temporary OS-dependent directory.
+.SH OPTIONS
+.TP
+.B \-v, \--version
+Print the clin version.
+.TP
+.B \-h, \--help
+Show this help message.
+.TP
+.B \--verbose
+Enable verbose output, useful for debugging.
+.TP
+.B \-o \fI<file>\fR
+Set the output binary file path.
+.TP
+.B \-ot \fI<file>\fR
+Set the output path for the binary but do not run it after building.
+.TP
+.B \-t
+Do not run the binary after compilation. This is useful for cases like compiling Java classes without immediately executing them.
+.TP
+.B \--build
+All arguments following this option are considered build flags and are passed directly to the underlying compiler or interpreter. This option should typically be used at the end of the command.
+.SH EXAMPLES
+.TP
+.B clin -o bin/myapp test.c
+Compile \fBtest.c\fR and save the executable as \fBbin/myapp\fR.
+.TP
+.B clin -ot bin/myapp hello.cpp
+Compile \fBhello.cpp\fR and save the executable as \fBbin/myapp\fR, but do not run it.
+.TP
+.B clin script.py
+Run the Python script \fBscript.py\fR.
+.TP
+.B clin --build "-Wall -O2" mycode.c
+Compile \fBmycode.c\fR with the build flags \fB-Wall\fR and \fB-O2\fR. The output binary will be created in the default temporary location and run.
+.TP
+.B clin -u myscript.py --input data.txt --verbose -n 5
+Run the Python script \fBmyscript.py\fR, passing the arguments \fB--input data.txt\fR, \fB--verbose\fR, and \fB-n 5\fR directly to the interpreter.
+.TP
+.B clin myscript.py --build "-u --input data.txt --verbose -n 5"
+Run the Python script \fBmyscript.py\fR, passing the build flags \fB-u --input data.txt --verbose -n 5\fR to the interpreter. Note the quoting to treat them as a single argument to \fB--build\fR.
+.SH AUTHOR
+Written by PaulSteve005
+

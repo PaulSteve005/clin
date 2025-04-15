@@ -1,6 +1,4 @@
-/pkg/
+/bin/
 
 # ignore bins
-*.out/
-*.exe/
 /test/

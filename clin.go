@@ -7,15 +7,18 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	//"strings"
+	"strings"
+	"time"
 )
 var tmpDir string = os.TempDir()
 var isWierd bool = false // specially for zig
+var seperator string = "/"  //initialized it to posix std
 
-// takes doer(compiler/interpreter) and the source/pathToSource for execution and
-// also a bool bin to flag if the doer generates seperate bin that needs manual execution + binoption biname runner and support for -ot flag
+// takes doer(compiler/interpreter) and the source/pathToSource for execution and much more actually
+// all function parameters when set to "" means get default value xcept for doer,pathToSource(needed anyhow),bools  and runner's "" means no runner required
+// " " is for none for all the parameters xcept the exceptions mentioned above
 func runCmd(doer string,doer2 string, pathToSource string, isCompilable bool, binName string, binoption string, runner string) {
-	var cmd, Rcmd *exec.Cmd
+	var cmd, Rcmd *exec.Cmd //cmd for compile/interpreter command and Rcmd for runner command
 	var binPath = ""
 	var args []string
 
@@ -33,11 +36,16 @@ func runCmd(doer string,doer2 string, pathToSource string, isCompilable bool, bi
 		binPath = customModule.BinPath   //custom bin user defined !!
 	}
 
-	//debug
-	fmt.Println("BinOption:", binoption)
-	fmt.Println("BinPath:", binPath)
-	fmt.Println("PATH:", os.Getenv("PATH"))
-	fmt.Println(exec.LookPath(doer))
+	// Verbose //
+	customModule.LogVerbose("BinOption    : %s", binoption)
+	customModule.LogVerbose("BinPath      : %s", binPath)
+
+	// checking if doer is installed or not //
+	if resolvedPath, err := exec.LookPath(doer); err == nil {
+		customModule.LogVerbose("Executable   : %s\n", resolvedPath)
+	} else {
+		fmt.Printf("Executable   : not found (%v) ", err)
+	}
 
 
 
@@ -45,61 +53,79 @@ func runCmd(doer string,doer2 string, pathToSource string, isCompilable bool, bi
 	if doer2 != " "{
 		args = append(args,doer2)
 	}
-	
-	// build flags //
-	if customModule.BuildFlags != "" {
-		args = append(args, customModule.BuildFlags)  // append build flags only if there exists  build flags
-	}
 
 	// binoptions  defaults to /tmp //
 	if isCompilable && binoption != " " {  // ignores stuff  if binoptions is set to " " none
 		if isWierd {
 			args = append(args, binoption+binPath)
-			fmt.Println(args,binoption+binPath)
 		} else {
 			args = append(args,binoption, binPath)
 		}
 	}
 
+	// build flags //
+	if customModule.BuildFlags != "" {
+		args = append(args, customModule.BuildFlags)  // append build flags only if there exists  build flags
+	}
+
 	args = append(args, pathToSource) // source is necessary !!
 
 	// Compiler / Interpreter //
-
+	customModule.LogVerbose("Compilation Command : %s %v", doer, args)
 	cmd = exec.Command(doer,args...)
-	fmt.Println("compilation command ",doer,args)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin  //stdin cuse interpreter is here
+	Ctime := time.Now()  //start clock
 	doErr := cmd.Run()
+	elapsed := time.Since(Ctime)  // calculate time
 	if doErr != nil {
 		fmt.Println("Error during processing ", doErr)
+	} else  {
+		customModule.LogVerbose("Compiled/Interpreted Successfll :)) %s\n",elapsed)
 	}
 
 	// Runner //
 	if isCompilable && doErr == nil && !customModule.NoExecBin {
-		if runner == ""{                                                                    // normal
+		if runner == ""{                                                                    // normal	
+			if !strings.Contains(binPath,seperator) {
+				binPath = "."+seperator+binPath
+
+			}
+			customModule.LogVerbose("Runtime Command     : %s ", binPath)
 			Rcmd = exec.Command(binPath) // Execute the generated binary directly
-		} else if runner == "java" {																												//java things
+		} else if runner == "java" {													//java things
+
+			customModule.LogVerbose("Processing things for java ")
 			sourceName := filepath.Base(pathToSource[:len(pathToSource)-len(filepath.Ext(pathToSource))])
 			directory := pathToSource[:len(pathToSource)-len(sourceName)-5] 
-				fmt.Println("dir",directory,"\n source  name ",sourceName)
-			if directory != ""{
+
+			if directory != ""{                                                        // if source was in a directory
+				//customModule.LogVerbose(" Directory where class is located %s ",directory)
+				//customModule.LogVerbose(" Name of the class file %s ",sourceName)
+
+				customModule.LogVerbose("Runtime Command     : %s -cp %s %s", runner, directory, sourceName)
 				Rcmd = exec.Command(runner,"-cp",directory,sourceName)
-				fmt.Println("runner command ",runner,"-cp",directory,sourceName)
 			}else {
+				//customModule.LogVerbose(" Name of the class file %s ",sourceName)
+				customModule.LogVerbose("Runtime Command     : %s %s", runner, sourceName)
 				Rcmd = exec.Command(runner,sourceName )
-				fmt.Println("runner command ",runner,sourceName)
+
 			}
-		} else {																																	// other runners (for future use)
+		} else {     // other runners (for future use)
 			Rcmd = exec.Command(runner,binPath)
 		}
 
 		Rcmd.Stdout = os.Stdout
 		Rcmd.Stderr = os.Stderr
 		Rcmd.Stdin = os.Stdin
+		Ctime = time.Now()  //start clock
 		Rerr := Rcmd.Run()
+		elapsed = time.Since(Ctime)  // calculate time
 		if Rerr != nil {
 			fmt.Println("Error during execution ", Rerr)
+		}else {
+			customModule.LogVerbose("Running Successfll :)) %s",elapsed)
 		}
 	}
 }
@@ -112,44 +138,42 @@ func do() {
 	extension :=  filepath.Ext(customModule.PathToSource)
 	// proper  os specific extension
 	var Defaultbin string = "a.out"
-	if runtime.GOOS == "windows"{
+	if runtime.GOOS == "windows"{  // windows things
 		Defaultbin = "a.exe"
+		seperator = "\\"  
 	}
 
 
 	switch extension { 
 	case ".c":
-		fmt.Println("gcc")
+		customModule.LogVerbose("Detected C ")
 		runCmd("gcc"," ", customModule.PathToSource, true, Defaultbin,"", "")	
 	case ".cpp":
-		fmt.Println("g++")
+		customModule.LogVerbose("Detected C++ ")
 		runCmd("g++"," ", customModule.PathToSource, true,Defaultbin, "", "")	
 	case ".go":
-		fmt.Println("Golang")
+		customModule.LogVerbose("Detected Golang ")
 		runCmd("go","build",customModule.PathToSource,true,Defaultbin,"", "")	
 	case ".rs":
-		fmt.Println("rustc")
+		customModule.LogVerbose("Detected Rust ")
 		runCmd("rustc"," ", customModule.PathToSource, true,Defaultbin, "", "")
 	case ".swift":
-		fmt.Println("swiftc")
+		customModule.LogVerbose("Detected Swift ")
 		runCmd("swiftc"," ", customModule.PathToSource, true,Defaultbin, "", "")
 	case ".zig":
+		customModule.LogVerbose("Detected Zig ")
 		isWierd = true
-		fmt.Println("Zig")
 		runCmd("zig","build-exe",customModule.PathToSource,true,Defaultbin,"-femit-bin=","")
 	case ".f90",".f95",".f",".f03",".f08",".for":
+		customModule.LogVerbose("Detected Fortran ")
 		runCmd("gfortran"," ",customModule.PathToSource,true,Defaultbin, "", "")
 	case ".hs":
+		customModule.LogVerbose("Detected Haskel")
 		runCmd("ghc"," ",customModule.PathToSource,true,Defaultbin, "", "")
-	case ".ts":
-		fmt.Println("typescript")
-		sourceName := filepath.Base(customModule.PathToSource[:len(customModule.PathToSource)-len(filepath.Ext(customModule.PathToSource))])
-		runCmd("tsc"," ",customModule.PathToSource,true,sourceName+".js", "--outFile", "node")
-
 
 	// mixed  //	
 	case ".java":
-		fmt.Println("javac and java")
+		customModule.LogVerbose("Detected Java")
 		if customModule.FoundBin{
 			fmt.Println("java does not support customizable directory")
 			os.Exit(3)
@@ -159,38 +183,38 @@ func do() {
 
 	// Interpreted //
 	case ".py":
-		fmt.Println("Python")
+		customModule.LogVerbose("Detected Python ")
 		runCmd("python"," ",customModule.PathToSource,false,"", "", "")	
 	case ".rb":
-		fmt.Println("ruby")
+		customModule.LogVerbose("Detected Ruby ")
 		runCmd("ruby"," ",customModule.PathToSource,false,"", "", "")	
 	case ".pl":
-		fmt.Println("Python")
+		customModule.LogVerbose("Detected Perl")
 		runCmd("perl"," ",customModule.PathToSource,false,"", "", "")	
 	case ".js":
-		fmt.Println("Javascript")
+		customModule.LogVerbose("Detected Javascript ")
 		runCmd("node"," ",customModule.PathToSource,false,"", "", "")
 	case ".php":
-		fmt.Println("php")
+		customModule.LogVerbose("Detected PHP ")
 		runCmd("php"," ",customModule.PathToSource,false,"", "", "")
 	case ".lua":
-		fmt.Println("lua")
+		customModule.LogVerbose("Detected lua ")
 		runCmd("lua"," ",customModule.PathToSource,false,"", "", "")
-
-
-
-
+	case ".ts":       //  still interpreted
+		customModule.LogVerbose("Detected TypeScript ")
+		sourceName := filepath.Base(customModule.PathToSource[:len(customModule.PathToSource)-len(filepath.Ext(customModule.PathToSource))])
+		runCmd("tsc"," ",customModule.PathToSource,true,sourceName+".js", "--outFile", "node")
 	default :
-		fmt.Println("unsuported extension/language")
+		fmt.Println("unsuported extension/language ")  // don't think it ll get here but just incase
+		fmt.Println("Soeething is not right with clin you shouldn't see this message ")
+		os.Exit(69)  //:P
 	}
 }
 
 func main()  {
-	//initial sanity check
+	// parse args  //
 	customModule.ParseArgs(os.Args[1:])
 
-	fmt.Println("path entered ", customModule.PathToSource)
-
-	// extension extraction
+	// do the thing //
 	do()
 }
