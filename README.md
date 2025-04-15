@@ -50,7 +50,7 @@ curl https://raw.githubusercontent.com/PaulSteve005/clin/refs/heads/main/scripts
 ```
 
 ### Windows
-(Add Windows installation instructions here)
+tba
 
 
 
