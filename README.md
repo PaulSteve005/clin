@@ -42,16 +42,17 @@
 With `clin`, you can seamlessly compile and run your code without needing to remember the specific commands for each language.
 
 ## Installations
-
 ### Linux/macOS
-
++ Requires sudo privilages
 ```
 curl https://raw.githubusercontent.com/PaulSteve005/clin/refs/heads/main/scripts/install.sh | sudo bash
 ```
 
 ### Windows
-tba
-
++ Open the powershell with administrator privilages and paste the following command 
+```
+iwr -useb https://raw.githubusercontent.com/PaulSteve005/clin/refs/heads/main/scripts/install.bat | Out-File "$env:TEMP\clin_install.bat"; & "$env:TEMP\clin_install.bat"
+```
 
 
 ## help

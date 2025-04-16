@@ -1,97 +1,69 @@
 @echo off
-:: Elevate to admin if needed
->nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
-if '%errorlevel%' NEQ '0' (
-    echo Requesting administrator access...
-    powershell -Command "Start-Process '%~f0' -Verb RunAs"
-    exit /b
+setlocal EnableDelayedExpansion
+
+:: Config
+set DOWNLOAD_URL=https://github.com/PaulSteve005/clin/releases/download/stable/clin-windows-x64.exe
+set INSTALL_DIR=C:\Program Files\clin
+set EXE_NAME=clin.exe
+set FULL_PATH=%INSTALL_DIR%\%EXE_NAME%
+
+:: Check if PowerShell is available
+where powershell >nul 2>&1
+if errorlevel 1 (
+    echo PowerShell is required but not found. Exiting.
+    exit /b 1
 )
 
-:: Call PowerShell with a here-string script
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-"& {
-$DownloadUrl = 'https://github.com/PaulSteve005/clin/releases/download/stable/clin-windows-x64'
-$InstallDir = 'C:\Program Files\clin'
-$ExeName = 'clin.exe'
-$FullPath = Join-Path $InstallDir $ExeName
+:: Create temp download folder
+set TMP_FILE=%TEMP%\%EXE_NAME%
 
-function Download-File {
-    param([string]$Url, [string]$OutFile)
-    if (-Not (Test-Path $OutFile)) {
-        Write-Host 'Downloading from' $Url 'to' $OutFile '...'
-        try {
-            Invoke-WebRequest -Uri $Url -OutFile $OutFile -ErrorAction Stop
-            Write-Host 'Download successful.'
-        } catch {
-            Write-Error 'Failed to download file: ' + $_.Exception.Message
-            exit 1
-        }
-    } else {
-        Write-Host 'File' $OutFile 'already exists. Skipping download.'
-    }
-}
+:: Download the file
+echo Downloading %DOWNLOAD_URL% to %TMP_FILE% ...
+powershell -NoProfile -Command "Invoke-WebRequest -Uri '%DOWNLOAD_URL%' -OutFile '%TMP_FILE%'"
+if errorlevel 1 (
+    echo Failed to download file.
+    exit /b 1
+)
 
-function Install-File {
-    param([string]$InstallPath, [string]$FileName)
-    Write-Host 'Creating directory' $InstallPath '...'
-    if (-not (Test-Path -Path $InstallPath -PathType Container)) {
-        try {
-            New-Item -ItemType Directory -Path $InstallPath -ErrorAction Stop | Out-Null
-            Write-Host 'Directory created.'
-        } catch {
-            Write-Error 'Failed to create directory: ' + $_.Exception.Message
-            exit 1
-        }
-    }
-    Write-Host 'Moving file to' $InstallPath '...'
-    try {
-        Move-Item -Path $FileName -Destination $InstallPath -Force -ErrorAction Stop
-        Write-Host 'File installation successful.'
-    } catch {
-        Write-Error 'Failed to move file: ' + $_.Exception.Message
-        exit 1
-    }
-}
+:: Create install directory
+if not exist "%INSTALL_DIR%" (
+    echo Creating directory %INSTALL_DIR% ...
+    mkdir "%INSTALL_DIR%"
+    if errorlevel 1 (
+        echo Failed to create install directory.
+        exit /b 1
+    )
+)
 
-function Add-To-Path {
-    param([string]$PathToAdd)
-    Write-Host 'Adding' $PathToAdd 'to PATH...'
-    $CurrentPath = [Environment]::GetEnvironmentVariable('Path', 'User')
-    $PathList = $CurrentPath.Split(';')
-    if (-not ($PathList -contains $PathToAdd)) {
-        try {
-            [Environment]::SetEnvironmentVariable('Path', "$CurrentPath;$PathToAdd", 'User')
-            Write-Host 'Path updated. Restart your terminal for changes to take effect.'
-        } catch {
-            Write-Error 'Failed to update PATH: ' + $_.Exception.Message
-            exit 1
-        }
-    } else {
-        Write-Host 'Path' $PathToAdd 'is already in PATH.'
-    }
-}
+:: Move the file
+echo Moving %TMP_FILE% to %FULL_PATH% ...
+move /Y "%TMP_FILE%" "%FULL_PATH%" >nul
+if errorlevel 1 (
+    echo Failed to move file to install directory.
+    exit /b 1
+)
 
-function Add-Defender-Exception {
-    param([string]$FilePath)
-    if (Get-Command -Name Add-MpPreference -ErrorAction SilentlyContinue) {
-        Write-Host 'Adding Windows Defender exclusion for' $FilePath '...'
-        try {
-            Add-MpPreference -ExclusionPath $FilePath -Force -ErrorAction Stop
-            Write-Host 'Defender exclusion added.'
-        } catch {
-            Write-Warning 'Failed to add Defender exclusion: ' + $_.Exception.Message
-        }
-    } else {
-        Write-Warning 'Defender cmdlet not available. Skipping exclusion.'
-    }
-}
+:: Add to PATH (user scope)
+echo Adding %INSTALL_DIR% to user PATH if not already present...
+for /f "tokens=*" %%A in ('powershell -NoProfile -Command "[Environment]::GetEnvironmentVariable('Path', 'User')"') do set "CUR_PATH=%%A"
 
-Download-File -Url $DownloadUrl -OutFile $ExeName
-Install-File -InstallPath $InstallDir -FileName $ExeName
-Add-To-Path -PathToAdd $InstallDir
-Add-Defender-Exception -FilePath $FullPath
+echo %CUR_PATH% | find /I "%INSTALL_DIR%" >nul
+if errorlevel 1 (
+    powershell -NoProfile -Command "[Environment]::SetEnvironmentVariable('Path', '%CUR_PATH%;%INSTALL_DIR%', 'User')"
+    echo User PATH updated.
+) else (
+    echo PATH already contains %INSTALL_DIR%.
+)
 
-Write-Host ''
-Write-Host '[✓] Installation complete. clin is located at:' $FullPath -ForegroundColor Green
-Write-Host 'You may need to restart your terminal or PowerShell session.'
-}"
+:: Add to Windows Defender exclusion list (optional, silently fails if no access)
+echo Attempting to add Windows Defender exclusion for %INSTALL_DIR% ...
+powershell -NoProfile -Command "Try { Add-MpPreference -ExclusionPath '%INSTALL_DIR%' } Catch { Write-Host 'Could not add Defender exclusion (insufficient permissions or Defender disabled).' }"
+
+:: Done
+echo.
+echo [✓] Installation complete!
+echo clin installed at: %FULL_PATH%
+echo You may need to restart your terminal or PowerShell session for PATH changes to apply.
+
+endlocal
+pause
