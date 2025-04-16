@@ -41,8 +41,8 @@ Run the Python script \fBscript.py\fR.
 .B clin --build "-Wall -O2" mycode.c
 Compile \fBmycode.c\fR with the build flags \fB-Wall\fR and \fB-O2\fR. The output binary will be created in the default temporary location and run.
 .TP
-.B clin -u myscript.py --input data.txt --verbose -n 5
-Run the Python script \fBmyscript.py\fR, passing the arguments \fB--input data.txt\fR, \fB--verbose\fR, and \fB-n 5\fR directly to the interpreter.
+.B clin -u myscript.py --input data.txt -n 5
+Run the Python script \fBmyscript.py\fR, passing the arguments \fB--input data.txt\fR and \fB-n 5\fR directly to the interpreter.
 .TP
 .B clin myscript.py --build "-u --input data.txt --verbose -n 5"
 Run the Python script \fBmyscript.py\fR, passing the build flags \fB-u --input data.txt --verbose -n 5\fR to the interpreter. Note the quoting to treat them as a single argument to \fB--build\fR.
