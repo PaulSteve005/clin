@@ -49,10 +49,42 @@ curl https://raw.githubusercontent.com/PaulSteve005/clin/refs/heads/main/scripts
 ```
 
 ### Windows
-+ Open the powershell with administrator privilages and paste the following command 
-```
-iwr -useb https://raw.githubusercontent.com/PaulSteve005/clin/refs/heads/main/scripts/install.bat | Out-File "$env:TEMP\clin_install.bat"; & "$env:TEMP\clin_install.bat"
-```
+
+Follow these steps to install `clin` using the batch script provided in the repository:
+
+
+#### 1. Download the Installer Script
+
+Click the link below to download the installer batch file:
+
+[Download `install.bat`](https://github.com/PaulSteve005/clin/blob/main/scripts/install.bat)
+
+> Tip: Right-click the link above and choose **"Save link as..."** to save it locally.
+
+
+#### 2. Run the Script as Administrator
+
+After downloading:
+
+1. **Right-click** the `install.bat` file.
+2. Select **"Run as administrator"** from the context menu.
+3. Windows may show a **SmartScreen warning** about running the file.
+   - Click **More info**
+   - Then click **Run anyway**
+
+This will open a PowerShell window and guide you through the installation steps.
+
+> Running as administrator is **required** to install the binary to `C:\Program Files\clin` and modify the system `PATH`.
+
+
+#### 3. Done
+
+After installation:
+- The `clin` binary will be placed in `C:\Program Files\clin\clin.exe`
+- The folder will be added to your system `PATH`
+- Windows Defender will be configured to exclude the folder (if possible)
+
+You may need to **restart your terminal or PowerShell** for the changes to take effect.
 
 
 ## help
